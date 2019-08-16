@@ -1,0 +1,86 @@
+intents:
+- greet
+- goodbye
+- affirm
+- deny
+- travel_start_time
+- travel_all_time
+- travel_start_time_end_place_transport
+- travel_all_time_place_transport
+- travel_transport
+- travel_all_time_end_place
+- travel_end_place
+- travel_end_time
+- travel_start_place
+- travel_none
+- intent_restart
+- address
+- time_entity
+entities:
+- start_time
+- end_time
+- start_place
+- end_place
+- transport
+- active_form_travel_form
+slots:
+  end_place:
+    type: unfeaturized
+    auto_fill: false
+  end_time:
+    type: unfeaturized
+    auto_fill: false
+  start_place:
+    type: unfeaturized
+    auto_fill: false
+  start_time:
+    type: unfeaturized
+    auto_fill: false
+  transport:
+    type: unfeaturized
+    auto_fill: false
+templates:
+  utter_greet:
+  - text: 你也好啊。
+  - text: 大家好才是真的好.
+  utter_working_on_it:
+  - text: 正在查询中，请稍后 ...
+  utter_goodbye:
+  - text: 再见！
+  - text: 好的，再见!
+  utter_ask_start_time:
+  - text: 您什么时候出发啊？
+  utter_ask_end_time:
+  - text: 您什么时候回来啊？
+  utter_ask_start_place:
+  - text: 您要从哪里出发啊？
+  utter_ask_end_place:
+  - text: 您要到哪里啊？
+  utter_ask_transport:
+  - text: 您要乘坐哪种交通工具呢？
+  utter_report_result:
+  - text: 报告下结果>__<
+  utter_default:
+  - text: 对不起，这个问题我还没学会.
+  utter_my_submit_info:
+  - text: 确认下!
+  utter_address:
+  - text: 我们一起去吧
+  - text: 山清水秀的地方
+  - text: 我最稀饭的地方
+  - text: 鸟语花香的地方
+actions:
+- utter_greet
+- utter_goodbye
+- utter_working_on_it
+- utter_ask_start_time
+- utter_ask_end_time
+- utter_ask_start_place
+- utter_ask_end_place
+- utter_ask_transport
+- utter_my_submit_info
+- utter_report_result
+- utter_default
+- utter_address
+forms:
+- travel_form

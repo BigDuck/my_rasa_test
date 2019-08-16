@@ -1,0 +1,35 @@
+## Configuration for Rasa NLU.
+## https://rasa.com/docs/rasa/nlu/components/
+#language: en
+#pipeline: supervised_embeddings
+#
+## Configuration for Rasa Core.
+## https://rasa.com/docs/rasa/core/policies/
+#policies:
+#  - name: MemoizationPolicy
+#  - name: KerasPolicy
+#  - name: MappingPolicy
+# 意图分类 intent_classifier_mitie、intent_classifier_sklearn、intent_classifier_tensorflow_embedding 和 intent_classifier_keyword
+language: "zh"
+pipeline:
+  - name: "MitieNLP"
+    model: "E:/python-work/WeatherBot/yyt-travel/yyt-travel-NLU/data/total_word_feature_extractor.dat"
+  - name: "JiebaTokenizer"
+    dictionary_path: "E:/python-work/WeatherBot/yyt-travel/yyt-travel-NLU/userdict"
+  - name: "MitieEntityExtractor"
+  - name: "EntitySynonymMapper"
+  - name: "MitieFeaturizer"
+  - name: "CountVectorsFeaturizer"
+#    OOV_token: oov
+#    token_pattern: '(?u)\b\w+\b'
+  - name: "EmbeddingIntentClassifier"
+
+policies:
+  - name: FormPolicy
+  - name: EmbeddingPolicy
+    epochs: 50
+  - name: FallbackPolicy
+    # min confidence needed to accept an NLU prediction
+    nlu_threshold: 0.3
+  - name: MemoizationPolicy
+  - name: MappingPolicy
