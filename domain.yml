@@ -16,6 +16,7 @@ intents:
 - intent_restart
 - address
 - time_entity
+- skills_user_idiom
 entities:
 - start_time
 - end_time
@@ -23,6 +24,7 @@ entities:
 - end_place
 - transport
 - active_form_travel_form
+- user_idiom
 slots:
   end_place:
     type: unfeaturized
@@ -39,6 +41,8 @@ slots:
   transport:
     type: unfeaturized
     auto_fill: false
+  user_idiom:
+    type: unfeaturized
 templates:
   utter_greet:
   - text: 你也好啊。
@@ -69,6 +73,12 @@ templates:
   - text: 山清水秀的地方
   - text: 我最稀饭的地方
   - text: 鸟语花香的地方
+  utter_time_entity:
+  - text: 也许是个好日子
+  - text: 也是元气满满的日子
+  - text: 宜吃饭,睡觉，打豆豆
+  user_action_user_idiom:
+  - text: 不知道呀
 actions:
 - utter_greet
 - utter_goodbye
@@ -82,5 +92,8 @@ actions:
 - utter_report_result
 - utter_default
 - utter_address
+- utter_time_entity
+- user_action_user_idiom
+- user_baidu_search
 forms:
 - travel_form

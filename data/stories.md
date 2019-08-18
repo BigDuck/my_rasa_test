@@ -11,7 +11,7 @@
   - action_deactivate_form  
   - form{"name": null}
 ## tavel with all_time
-* travel_all_time{"start_time":"明天","end_time":"后天"}
+* travel_all_time
   - travel_form
   - form{"name":"travel_form"}
   - form{"name": null}
@@ -26,9 +26,15 @@
 ## story_greet
 * greet
  - utter_greet
+ 
 ## story_address
 * address
  - utter_address 
+ 
 ## story_time_entity
 * time_entity
- - utter_address
+ - utter_time_entity
+
+## story_user_idiom
+* skills_user_idiom
+ - user_action_user_idiom

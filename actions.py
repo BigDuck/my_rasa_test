@@ -1,16 +1,52 @@
 # -*- coding: utf-8 -*-
+import json
+import logging
 from typing import Dict, Text, Any, List, Union, Optional
 
-from rasa_sdk import Action
-from rasa_sdk.events import Restarted, AllSlotsReset
+import requests
 from rasa_sdk import Tracker
+from rasa_sdk.events import Restarted, AllSlotsReset
+from rasa_sdk.events import SlotSet
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.forms import FormAction, REQUESTED_SLOT
-import logging
-from rasa_sdk.events import SlotSet
+
+import YytUtils
 
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
+
+
+def extract_travel_all_time_slot(dispatcher: CollectingDispatcher, tracker: Tracker):
+    print("指明开始时间和结束时间")
+    current_user_msg = tracker.latest_message.get('text')
+    print("用户说", current_user_msg)
+    # 判断意图 看看是不是目标意图，是目标意图，是目标意图判断时间的词槽有没有数据
+    # （没有数据判断用户输入是不是包含了起始和结束的话术，目前这个可以通过语料的入选类型来严格控制进入意图的准入条件）
+    entities = tracker.latest_message['entities']
+    start_time = ''
+    end_time = ''
+    slots_set = []
+    if len(entities) == 2:
+        for tmp in entities:
+            if tmp.get("entity") == "start_time":
+                logger.debug("start_time=", tmp.get("value"))
+                start_time = tmp.get("value");
+            if tmp.get("entity") == "end_time":
+                logger.debug("end_time=", tmp.get("value"))
+                end_time = tmp.get("value")
+    else:
+        date = YytUtils.get_date(current_user_msg)
+        try:
+            start_time = date[0]
+            end_time = date[1]
+        except IndexError as  e:
+            logger.error(e)
+    tracker.slots["start_time"] = start_time
+    tracker.slots["end_time"] = end_time
+    slots_set.append(SlotSet("start_time", start_time))
+    slots_set.append(SlotSet("end_time", end_time))
+    return slots_set
+    # 分词找出结束和起始时间
 
 
 class TravelForm(FormAction):
@@ -22,17 +58,24 @@ class TravelForm(FormAction):
 
     @staticmethod
     def required_slots(tracker: Tracker) -> List[Text]:
+        print("required_slots:>", tracker.latest_message['intent'].get('name'))
         required_tmp_slots = ["start_time", "end_time", "start_place", "end_place", "transport"]
         required_slots = []
-        if tracker.get_slot("start_time") is None:
+        start_time = tracker.get_slot("start_time")
+        end_time = tracker.get_slot("end_time")
+        start_place = tracker.get_slot("start_place")
+        end_place = tracker.get_slot("end_place")
+        transport = tracker.get_slot("transport")
+        print(start_time, end_time, start_place, end_place, transport)
+        if start_time is None:
             required_slots.append("start_time")
-        if tracker.get_slot("end_time") is None:
+        if end_time is None:
             required_slots.append("end_time")
-        if tracker.get_slot("start_place") is None:
+        if start_place is None:
             required_slots.append("start_place")
-        if tracker.get_slot("end_place") is None:
+        if end_place is None:
             required_slots.append("end_place")
-        if tracker.get_slot("transport") is None:
+        if transport is None:
             required_slots.append("transport")
         return required_slots
 
@@ -85,6 +128,11 @@ class TravelForm(FormAction):
         print("latest_latest_message>>", tracker.latest_message)
         print("latest_latest_action_name>>", tracker.latest_action_name)
         print("user:>", tracker.latest_message.get('text'))
+        print(tracker.get_slot("end_time"), tracker.get_slot("start_time"))
+        slots_set = []
+        if tracker.latest_message['intent'].get('name') == self.TRAVEL_ALL_TIME:
+            print("send--id", tracker.sender_id)
+            slots_set = extract_travel_all_time_slot(dispatcher, tracker)
         if tracker.latest_message['intent'].get('name') == 'restart':
             print("last_msg", tracker.latest_message['intent'])
             return [Restarted(), AllSlotsReset()]
@@ -98,20 +146,11 @@ class TravelForm(FormAction):
                     silent_fail=False,
                     **tracker.slots
                 )
-                return [SlotSet(REQUESTED_SLOT, slot)]
+                slots_set.append(SlotSet(REQUESTED_SLOT, slot))
+                return slots_set
         return None
 
     # 用来抽取 指明了开始时间和结束时间的
-    def extract_travel_all_time_slot(self, tracker: Tracker):
-        print("指明开始时间和结束时间")
-        current_intent = tracker.latest_message['intent'].get('name')
-        current_user_msg = tracker.latest_message.get('text')
-        # 判断意图 看看是不是目标意图，是目标意图，是目标意图判断时间的词槽有没有数据
-        # （没有数据判断用户输入是不是包含了起始和结束的话术，目前这个可以通过语料的入选类型来严格控制进入意图的准入条件）
-        if current_intent == self.TRAVEL_ALL_TIME:
-            # 分词找出结束和起始时间
-            if current_user_msg:
-                pass
 
     def extract_requested_slot(
             self,
@@ -128,7 +167,8 @@ class TravelForm(FormAction):
 
         # get mapping for requested slot
         requested_slot_mappings = self.get_mappings_for_slot(slot_to_fill)
-
+        if tracker.latest_message['intent'].get('name') == self.TRAVEL_ALL_TIME:
+            extract_travel_all_time_slot(dispatcher, tracker)
         for requested_slot_mapping in requested_slot_mappings:
             logger.debug("Got mapping '{}'".format(requested_slot_mapping))
             if self.intent_is_desired(requested_slot_mapping, tracker):
@@ -166,8 +206,46 @@ class BaiDuAction(FormAction):
         return []
 
     def submit(self, dispatcher, tracker, domain):
-        slot = tracker.get_slot("user_idiom")
-        slot = tracker.get_slot("user_keyword")
+        # slot = tracker.get_slot("user_idiom")
+        # slot = tracker.get_slot("user_keyword")
+        msg = tracker.latest_message.get("text")
+        bot = sendMsgToChatBot(msg)
+        dispatcher.utter_message(bot)
+        return []
 
     def name(self):
-        return "baidu_search"
+        return "user_baidu_search"
+
+
+class UserIdiomAction(FormAction):
+    def name(self):
+        return "user_action_user_idiom"
+
+    @staticmethod
+    def required_slots(tracker):
+        print("需要的槽位")
+        return ["user_idiom"]
+
+    def submit(self, dispatcher, tracker, domain):
+        idiom = tracker.get_slot("user_idiom")
+        print(idiom)
+        intent_ = tracker.latest_message['intent']
+        print("intent", intent_)
+        dispatcher.utter_message("{}的意思是.......，哈哈哈，其实我要不知道".format(idiom))
+        return []
+
+
+def sendMsgToChatBot(txt):
+    print(txt)
+    response = requests.post(
+        "http://10.188.181.72:9999/message",
+        data={"msg": txt}
+    )
+    print(response.text)
+    resultMsg = response.text
+    try:
+        res = json.dumps(response.text)
+        resultMsg = res['text']
+    except  BaseException as  e:
+        print(e)
+    return resultMsg

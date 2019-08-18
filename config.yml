@@ -27,9 +27,10 @@ pipeline:
 policies:
   - name: FormPolicy
   - name: EmbeddingPolicy
-    epochs: 50
+    epochs: 100
   - name: FallbackPolicy
     # min confidence needed to accept an NLU prediction
-    nlu_threshold: 0.3
+    nlu_threshold: 0.5
+    fallback_action_name: user_baidu_search
   - name: MemoizationPolicy
   - name: MappingPolicy
