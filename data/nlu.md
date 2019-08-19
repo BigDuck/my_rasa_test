@@ -99,6 +99,40 @@
 - [1月4日](start_time)到[5月8日](end_time)要去出差
 - [2月6日](start_time)到[3月9日](end_time)去出差
 
+## intent:travel_all_time_end_place
+- [星期一](start_time)到[星期四](end_time)我要去[厦门](end_place)出差
+- 我[星期一](start_time)到[星期四](end_time)我要去[厦门](end_place)出差
+- [下星期一](start_time)到[星期四](end_time)我要去[厦门](end_place)出差
+- 我[下星期一](start_time)到[星期四](end_time)我要去[厦门](end_place)出差
+- [明天](start_time)到[后天](end_time)我要去[天津](end_place)出差
+- 我[明天](start_time)到[后天](end_time)我要去[天津](end_place)出差
+- [星期一](start_time)到[下星期一](end_time)我要去[北京](end_place)出差
+- 我[星期一](start_time)到[下星期一](end_time)我要去[北京](end_place)出差
+- [7月7日](start_time)到[8月11日](end_time)我要去[乌鲁木齐](end_place)出差
+- 我[7月7日](start_time)到[8月11日](end_time)要去[乌鲁木齐](end_place)出差
+- [11月4日](start_time)到[11月18日](end_time)要去[福州](end_place)出差
+- 我[11月4日](start_time)到[11月18日](end_time)要去[福州](end_place)出差
+- [2月6日](start_time)到[3月9日](end_time)去[泉州](end_place)出差
+
+
+## intent:travel_all_time_place_transport
+- [10月1日](start_time)到[10月7日](end_time)我要[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
+- [10月1日](start_time)至[10月7日](end_time)要[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
+- 我[10月1日](start_time)到[10月7日](end_time)要[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
+- [10月1日](start_time)至[10月7日](end_time)[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
+- [明天](start_time)到[后天](end_time)我要[乘飞机](transport)从[北京](start_place)到[天津](end_place)出差
+- 我[明天](start_time)到[后天](end_time)[乘飞机](transport)从[泉州](start_place)到[长春](end_place)出差
+- 我[星期一](start_time)到[星期五](end_time)[乘飞机](transport)从[泉州](start_place)到[长春](end_place)出差
+
+## intent:travel_end_place
+- 去[北京](end_place)出差
+- 我要去[北京](end_place)出差
+- 我要去[天津](end_place)出差
+- 要去[上海](end_place)出差
+- 我要去[昆明](end_place)出差
+- 要去[厦门](end_place)出差
+- 我要去[长春](end_place)出差
+- 去[石家庄](end_place)出差
 
 ## intent:travel_none
 - 出差

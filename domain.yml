@@ -52,6 +52,8 @@ templates:
   utter_goodbye:
   - text: 再见！
   - text: 好的，再见!
+  utter_deny_say:
+  - text: 好的,任务已取消!
   utter_ask_start_time:
   - text: 您什么时候出发啊？
   utter_ask_end_time:
@@ -82,6 +84,7 @@ templates:
 actions:
 - utter_greet
 - utter_goodbye
+- utter_deny_say
 - utter_working_on_it
 - utter_ask_start_time
 - utter_ask_end_time
@@ -94,6 +97,7 @@ actions:
 - utter_address
 - utter_time_entity
 - user_action_user_idiom
-- user_baidu_search
+- user_action_baidu_search
+- user_action_chat_bot
 forms:
 - travel_form

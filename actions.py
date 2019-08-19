@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# 自定义action：以 user_action_业务名字
 import json
 import logging
 from typing import Dict, Text, Any, List, Union, Optional
@@ -16,7 +17,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
 
 
-def extract_travel_all_time_slot(dispatcher: CollectingDispatcher, tracker: Tracker):
+# 处理有开始时间和结束时间
+def extract_travel_all_time_slot(tracker: Tracker):
     print("指明开始时间和结束时间")
     current_user_msg = tracker.latest_message.get('text')
     print("用户说", current_user_msg)
@@ -35,18 +37,51 @@ def extract_travel_all_time_slot(dispatcher: CollectingDispatcher, tracker: Trac
                 logger.debug("end_time=", tmp.get("value"))
                 end_time = tmp.get("value")
     else:
-        date = YytUtils.get_date(current_user_msg)
         try:
+            date = extract_start_end_time_values(current_user_msg)
             start_time = date[0]
             end_time = date[1]
-        except IndexError as  e:
+        except IndexError as e:
             logger.error(e)
-    tracker.slots["start_time"] = start_time
-    tracker.slots["end_time"] = end_time
-    slots_set.append(SlotSet("start_time", start_time))
-    slots_set.append(SlotSet("end_time", end_time))
+        # 找出结束和起始时间
+    print("start_time", start_time)
+    print("end_time", end_time)
+    try:
+        # 如果转换失败，说明日期非法
+        start_time = YytUtils.chinese_date_to_date(start_time)
+        tmpDate = extract_start_end_time_values(current_user_msg)
+        if "timestamp" in start_time:
+            start_time = start_time['timestamp']
+        else:
+            start_time = YytUtils.chinese_date_to_date(tmpDate[0])['timestamp']
+        if "timestamp" in end_time:
+            end_time = end_time['timestamp']
+        else:
+            end_time = YytUtils.chinese_date_to_date(tmpDate[1])['timestamp']
+    except KeyError as e:
+        logger.error(e)
+        start_time = None
+        end_time = None
+
+    # 如果时间转换不能得到正确的时间，那么需要向用户再次获取
+    if start_time is not None:
+        tracker.slots["start_time"] = start_time
+        slots_set.append(SlotSet("start_time", start_time))
+    if end_time is not None:
+        tracker.slots["end_time"] = end_time
+        slots_set.append(SlotSet("end_time", end_time))
     return slots_set
-    # 分词找出结束和起始时间
+
+
+# 得到开始时间和结束时间
+def extract_start_end_time_values(msg):
+    logger.debug(msg)
+    date = YytUtils.get_date(msg)
+    return date
+
+
+def extract_travel_all_time_and_end_place_slot(tracker: Tracker):
+    pass
 
 
 class TravelForm(FormAction):
@@ -59,7 +94,6 @@ class TravelForm(FormAction):
     @staticmethod
     def required_slots(tracker: Tracker) -> List[Text]:
         print("required_slots:>", tracker.latest_message['intent'].get('name'))
-        required_tmp_slots = ["start_time", "end_time", "start_place", "end_place", "transport"]
         required_slots = []
         start_time = tracker.get_slot("start_time")
         end_time = tracker.get_slot("end_time")
@@ -132,7 +166,7 @@ class TravelForm(FormAction):
         slots_set = []
         if tracker.latest_message['intent'].get('name') == self.TRAVEL_ALL_TIME:
             print("send--id", tracker.sender_id)
-            slots_set = extract_travel_all_time_slot(dispatcher, tracker)
+            slots_set = extract_travel_all_time_slot(tracker)
         if tracker.latest_message['intent'].get('name') == 'restart':
             print("last_msg", tracker.latest_message['intent'])
             return [Restarted(), AllSlotsReset()]
@@ -167,8 +201,6 @@ class TravelForm(FormAction):
 
         # get mapping for requested slot
         requested_slot_mappings = self.get_mappings_for_slot(slot_to_fill)
-        if tracker.latest_message['intent'].get('name') == self.TRAVEL_ALL_TIME:
-            extract_travel_all_time_slot(dispatcher, tracker)
         for requested_slot_mapping in requested_slot_mappings:
             logger.debug("Got mapping '{}'".format(requested_slot_mapping))
             if self.intent_is_desired(requested_slot_mapping, tracker):
@@ -200,6 +232,7 @@ class TravelForm(FormAction):
         return {}
 
 
+# 百度查询技能
 class BaiDuAction(FormAction):
     @staticmethod
     def required_slots(tracker):
@@ -209,14 +242,14 @@ class BaiDuAction(FormAction):
         # slot = tracker.get_slot("user_idiom")
         # slot = tracker.get_slot("user_keyword")
         msg = tracker.latest_message.get("text")
-        bot = sendMsgToChatBot(msg)
-        dispatcher.utter_message(bot)
+        dispatcher.utter_message("百度一下，你就知道{}是什么意思".format(msg))
         return []
 
     def name(self):
-        return "user_baidu_search"
+        return "user_action_baidu_search"
 
 
+# 用户成语技能
 class UserIdiomAction(FormAction):
     def name(self):
         return "user_action_user_idiom"
@@ -235,17 +268,34 @@ class UserIdiomAction(FormAction):
         return []
 
 
-def sendMsgToChatBot(txt):
-    print(txt)
-    response = requests.post(
-        "http://10.188.181.72:9999/message",
-        data={"msg": txt}
-    )
-    print(response.text)
-    resultMsg = response.text
-    try:
-        res = json.dumps(response.text)
-        resultMsg = res['text']
-    except  BaseException as  e:
-        print(e)
-    return resultMsg
+# 机器人action
+class ChatBotAction(FormAction):
+    def name(self):
+        return "user_action_chat_bot"
+
+    @staticmethod
+    def required_slots(tracker):
+        return []
+
+    def submit(self, dispatcher, tracker, domain):
+        msg = tracker.latest_message.get("text")
+        bot = self.sendMsgToChatBot(msg)
+        dispatcher.utter_message(bot)
+        return []
+
+    def sendMsgToChatBot(msg):
+        try:
+            response = requests.post(
+                YytUtils.get_config("chat-bot", "chat_bot_address"),
+                data={"msg": msg}
+            )
+            result_msg = response.text
+            try:
+                res = json.dumps(response.text)
+                result_msg = res['text']
+            except BaseException as e:
+                logger.error(e)
+        except BaseException as e:
+            result_msg = "哎呀,系统出小差了,稍后再试试吧！"
+            logger.error("系统出错", e)
+        return result_msg

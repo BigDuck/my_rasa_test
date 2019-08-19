@@ -15,13 +15,13 @@ pipeline:
   - name: "MitieNLP"
     model: "E:/python-work/WeatherBot/yyt-travel/yyt-travel-NLU/data/total_word_feature_extractor.dat"
   - name: "JiebaTokenizer"
-    dictionary_path: "E:/python-work/WeatherBot/yyt-travel/yyt-travel-NLU/userdict"
+    dictionary_path: "E:/python-work/rasa-new-project/report-job/userdict"
   - name: "MitieEntityExtractor"
   - name: "EntitySynonymMapper"
   - name: "MitieFeaturizer"
   - name: "CountVectorsFeaturizer"
-#    OOV_token: oov
-#    token_pattern: '(?u)\b\w+\b'
+  #    OOV_token: oov
+  #    token_pattern: '(?u)\b\w+\b'
   - name: "EmbeddingIntentClassifier"
 
 policies:
@@ -30,7 +30,7 @@ policies:
     epochs: 100
   - name: FallbackPolicy
     # min confidence needed to accept an NLU prediction
-    nlu_threshold: 0.5
-    fallback_action_name: user_baidu_search
+    nlu_threshold: 0.4
+    fallback_action_name: user_action_chat_bot
   - name: MemoizationPolicy
   - name: MappingPolicy
