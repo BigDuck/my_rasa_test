@@ -60,14 +60,6 @@
 - hi
 - 你好呀
 
-## intent:skills_user_idiom
-- 什么是[张冠李戴](user_idiom)
-- 什么是[鸡犬升天](user_idiom)
-- 什么是[异想天开](user_idiom)
-- 什么是[魑魅魍魉](user_idiom)
-- 什么是[秋后算账](user_idiom)
-- 什么是[花开富贵](user_idiom)
-
 ## intent:time_entity
 - 星期一
 - 星期二
@@ -96,8 +88,15 @@
 - 我[明天](start_time)到[后天](end_time)要去出差
 - [明天](start_time)到[后天](end_time)去出差
 - [5月5日](start_time)到[5月10日](end_time)我要去出差
+- [6月5日](start_time)到[6月24日](end_time)我要去出差
 - [1月4日](start_time)到[5月8日](end_time)要去出差
 - [2月6日](start_time)到[3月9日](end_time)去出差
+- [3月3日](start_time)到[3月20日](end_time)去出差
+- [4月5日](start_time)到[4月10日](end_time)去出差
+- [7月1日](start_time)到[7月6日](end_time)去出差
+- [8月2日](start_time)到[8月7日](end_time)去出差
+- [9月3日](start_time)到[9月8日](end_time)去出差
+- [10月2日](start_time)到[10月8日](end_time)去出差
 
 ## intent:travel_all_time_end_place
 - [星期一](start_time)到[星期四](end_time)我要去[厦门](end_place)出差
@@ -117,6 +116,13 @@
 
 ## intent:travel_all_time_place_transport
 - [10月1日](start_time)到[10月7日](end_time)我要[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
+- [2月1日](start_time)到[2月23日](end_time)我要坐[动车](transport)从[乌鲁木齐](start_place)到[福州](end_place)出差
+- [3月2日](start_time)到[3月10日](end_time)我要[乘飞机](transport)从[合肥](start_place)到[福州](end_place)出差
+- [4月3日](start_time)到[4月24日](end_time)我要坐[动车](transport)从[武汉](start_place)到[厦门](end_place)出差
+- [5月4日](start_time)到[5月25日](end_time)我要[乘飞机](transport)从[南昌](start_place)到[深圳](end_place)出差
+- [6月5日](start_time)到[6月26日](end_time)我要坐[动车](transport)从[广州](start_place)到[昆明](end_place)出差
+- [7月6日](start_time)到[6月27日](end_time)我要坐[动车](transport)从[广州](start_place)到[昆明](end_place)出差
+- [8月7日](start_time)到[8月28日](end_time)我要[乘飞机](transport)从[广州](start_place)到[昆明](end_place)出差
 - [10月1日](start_time)至[10月7日](end_time)要[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
 - 我[10月1日](start_time)到[10月7日](end_time)要[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
 - [10月1日](start_time)至[10月7日](end_time)[乘飞机](transport)从[厦门](start_place)到[北京](end_place)出差
@@ -141,6 +147,3 @@
 - 去出差
 - 出差啦
 - 出差咯
-
-## regex:time_entities
-- [0-9]{1,2}月[0-9]{1,2}日

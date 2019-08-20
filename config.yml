@@ -27,7 +27,7 @@ pipeline:
 policies:
   - name: FormPolicy
   - name: EmbeddingPolicy
-    epochs: 100
+    epochs: 150
   - name: FallbackPolicy
     # min confidence needed to accept an NLU prediction
     nlu_threshold: 0.5
