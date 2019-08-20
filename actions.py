@@ -16,19 +16,21 @@ import YytUtils
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
 
+'''
+抽取有开始时间和结束时间的意图
+'''
 
-# 处理有开始时间和结束时间
-def extract_travel_all_time_slot(tracker: Tracker):
-    print("指明开始时间和结束时间")
+
+def extract_travel_all_time_slots(tracker: Tracker):
     current_user_msg = tracker.latest_message.get('text')
-    print("用户说", current_user_msg)
+    logger.debug("用户说", current_user_msg)
     # 判断意图 看看是不是目标意图，是目标意图，是目标意图判断时间的词槽有没有数据
     # （没有数据判断用户输入是不是包含了起始和结束的话术，目前这个可以通过语料的入选类型来严格控制进入意图的准入条件）
     entities = tracker.latest_message['entities']
     start_time = ''
     end_time = ''
     slots_set = []
-    if len(entities) == 2:
+    if len(entities) != 0:
         for tmp in entities:
             if tmp.get("entity") == "start_time":
                 logger.debug("start_time=", tmp.get("value"))
@@ -54,11 +56,12 @@ def extract_travel_all_time_slot(tracker: Tracker):
             start_time = start_time['timestamp']
         else:
             start_time = YytUtils.chinese_date_to_date(tmpDate[0])['timestamp']
+        end_time = YytUtils.chinese_date_to_date(end_time)
         if "timestamp" in end_time:
             end_time = end_time['timestamp']
         else:
             end_time = YytUtils.chinese_date_to_date(tmpDate[1])['timestamp']
-    except KeyError as e:
+    except KeyError and IndexError as e:
         logger.error(e)
         start_time = None
         end_time = None
@@ -73,20 +76,105 @@ def extract_travel_all_time_slot(tracker: Tracker):
     return slots_set
 
 
-# 得到开始时间和结束时间
+'''
+抽取所有时间和结束地址 对应的意图：travel_all_time_and_end_place
+
+'''
+
+
+def extract_travel_all_time_end_place_slots(tracker: Tracker):
+    # 先抽取时间
+    slots_arr = extract_travel_all_time_slots(tracker)
+    # 在抽取目的地点，一般地点分词会比较给力，不像时间会被拆开，这边不处理那些奇怪的地点，有再说
+    entities = tracker.latest_message['entities']
+    # TODO 这边后面改造下，找个地址转换的来弄
+    end_place = None
+    if len(entities) == 1:
+        for entity in entities:
+            if entity.get("entity") == "end_place":
+                end_place = entity.get("value")
+    if end_place is not None:
+        tracker.slots['end_place'] = end_place
+        slots_arr.append(SlotSet("end_place", end_place))
+    return slots_arr
+
+
+'''
+抽取只包含目的地点的意图
+'''
+
+
+def extract_travel_end_place_slots(tracker: Tracker):
+    slots_set = []
+    entities = tracker.latest_message['entities']
+    end_place = None
+    if len(entities) != 0:
+        for entity in entities:
+            if entity.get("entity") == "end_place":
+                end_place = entity.get("value")
+    if end_place is not None:
+        tracker.slots['end_place'] = end_place
+        slots_set.append(SlotSet("end_place", end_place))
+    return slots_set
+
+
+'''
+抽取什么都包含的，即完整语局
+'''
+
+
+def extract_travel_all_time_place_transport_slots(tracker: Tracker):
+    # 先抽取时间把，在单独处理下地点这类的
+    slots_arr = extract_travel_all_time_slots(tracker)
+    # 处理开始地点与目的地点
+    entities = tracker.latest_message['entities']
+    start_place = None
+    end_place = None
+    transport = None
+    if len(entities) != 0:
+        for entity in entities:
+            if entity.get("entity") == "start_place":
+                start_place = entity.get("value")
+            if entity.get("entity") == "end_place":
+                end_place = entity.get("value")
+            if entity.get("entity") == "transport":
+                transport_arr = YytUtils.get_transport(entity.get("value"))
+                if len(transport_arr) != 0:
+                    transport = transport_arr[0]
+    if start_place is not None:
+        tracker.slots['start_place'] = start_place
+        slots_arr.append(SlotSet("start_place", start_place))
+    if end_place is not None:
+        tracker.slots['end_place'] = end_place
+        slots_arr.append(SlotSet("end_place", end_place))
+    if transport is not None:
+        tracker.slots['transport'] = transport
+        slots_arr.append(SlotSet("transport", transport))
+    return slots_arr
+
+
+'''
+得到开始时间和结束时间
+'''
+
+
 def extract_start_end_time_values(msg):
     logger.debug(msg)
     date = YytUtils.get_date(msg)
     return date
 
 
-def extract_travel_all_time_and_end_place_slot(tracker: Tracker):
-    pass
-
-
 class TravelForm(FormAction):
     # 已知开始时间和结束时间
     TRAVEL_ALL_TIME = "travel_all_time"
+    # 已知时间地点交通工具
+    TRAVEL_ALL_TIME_PLACE_TRANSPORT = "travel_all_time_place_transport"
+    # 已知目的地点
+    TRAVEL_END_PLACE = "travel_end_place"
+    # 已知开始和结束时间目的地点
+    TRAVEL_ALL_TIME_END_PLACE = "travel_all_time_end_place"
+    # 重置会话意图
+    INTENT_RESTART = "restart"
 
     def name(self):
         return "travel_form"
@@ -158,18 +246,26 @@ class TravelForm(FormAction):
         """Request the next slot and utter template if needed,
             else return None"""
 
-        print("Intent:>", tracker.latest_message['intent'].get('name'))
+        current_intent = tracker.latest_message['intent'].get('name')
+        print("Intent:>", current_intent)
         print("latest_latest_message>>", tracker.latest_message)
         print("latest_latest_action_name>>", tracker.latest_action_name)
         print("user:>", tracker.latest_message.get('text'))
         print(tracker.get_slot("end_time"), tracker.get_slot("start_time"))
         slots_set = []
-        if tracker.latest_message['intent'].get('name') == self.TRAVEL_ALL_TIME:
-            print("send--id", tracker.sender_id)
-            slots_set = extract_travel_all_time_slot(tracker)
-        if tracker.latest_message['intent'].get('name') == 'restart':
-            print("last_msg", tracker.latest_message['intent'])
-            return [Restarted(), AllSlotsReset()]
+        logger.debug("send_id", tracker.sender_id, current_intent)
+        # 意图 判断进入不同处理,第一次才能判断，否则不需要去判断
+        if current_intent == self.INTENT_RESTART:
+            return [Restarted()]
+        if len(tracker.slots) == 0 or self.slots_all_none(tracker.slots):
+            if current_intent == self.TRAVEL_ALL_TIME:
+                slots_set = extract_travel_all_time_slots(tracker)
+            if current_intent == self.TRAVEL_ALL_TIME_PLACE_TRANSPORT:
+                slots_set = extract_travel_all_time_place_transport_slots(tracker)
+            if current_intent == self.TRAVEL_END_PLACE:
+                slots_set = extract_travel_end_place_slots(tracker)
+            if current_intent == self.TRAVEL_ALL_TIME_END_PLACE:
+                slots_set = extract_travel_all_time_end_place_slots(tracker)
         for slot in self.required_slots(tracker):
             if self._should_request_slot(tracker, slot):
                 logger.debug("Request next slot '{}'".format(slot))
@@ -183,6 +279,14 @@ class TravelForm(FormAction):
                 slots_set.append(SlotSet(REQUESTED_SLOT, slot))
                 return slots_set
         return None
+
+    # 判断槽位是否全为空
+    def slots_all_none(self, values: dict):
+        keys = values.keys()
+        for key in keys:
+            if values.get(key) is not None:
+                return False
+        return True
 
     # 用来抽取 指明了开始时间和结束时间的
 

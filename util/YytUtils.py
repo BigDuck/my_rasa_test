@@ -5,15 +5,26 @@ import re
 
 from TimeNormalizer import TimeNormalizer
 
-pattern = '[0-9]{1,2}月[0-9]{1,2}[日|号]'
-re_compile = re.compile(pattern)
+month_day_pattern = '[0-9]{1,2}月[0-9]{1,2}[日|号]'
+transport_pattern = '飞机|火车|动车|的士|大巴|轮船|其他'
+month_day_re = re.compile(month_day_pattern)
+transport_re = re.compile(transport_pattern)
 cf = configparser.ConfigParser()
 tn = TimeNormalizer()
 
-
+'''
 # 用正则的方式获取句子中的日期（目前获取积月几日形式的）
+'''
+
+
 def get_date(date_str):
-    return re_compile.findall(date_str)
+    return month_day_re.findall(date_str)
+
+
+'''
+获取配置文件ini 格式 section 模块 item 就是key
+
+'''
 
 
 def get_config(section, item):
@@ -39,6 +50,20 @@ def chinese_date_to_date(date_str):
     return json.loads(tn.parse(date_str))
 
 
+'''
+以正则的方式获取交通工具
+'''
+
+
+def get_transport(data_str):
+    return transport_re.findall(data_str)
+
+
 if __name__ == '__main__':
-    date = (chinese_date_to_date("9月10日"))
-    print(date["timestamp"])
+    print(get_date("我7月4日去北京"))
+    transport = get_transport("坐飞机")
+    if len(transport) != 0:
+        print(transport[0])
+    else:
+        print("没有交通工具")
+    print(chinese_date_to_date("星期三"))

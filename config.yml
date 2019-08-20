@@ -30,7 +30,7 @@ policies:
     epochs: 100
   - name: FallbackPolicy
     # min confidence needed to accept an NLU prediction
-    nlu_threshold: 0.4
+    nlu_threshold: 0.5
     fallback_action_name: user_action_chat_bot
   - name: MemoizationPolicy
   - name: MappingPolicy
